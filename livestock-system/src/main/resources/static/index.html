@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VinaBeef · Gate Operations</title>
+<style>
+:root{--ink:#173025;--muted:#6b7d72;--line:#e3ebe5;--bg:#f4f7f4;--panel:#fff;--brand:#123c2c;--brand2:#17633d;--ok:#178143;--okbg:#dff5e6;--warn:#8f5b00;--warnbg:#fff1cc;--bad:#b33322;--badbg:#ffe6e1;--crit:#7a1020}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+.side{position:fixed;inset:0 auto 0 0;width:230px;padding:28px 16px;background:var(--brand);color:#fff}
+.brand{font-size:23px;font-weight:700}.brand i{color:#8ad7a3;font-style:normal}
+.side p{color:#abc9b5;margin:4px 0 22px}
+.nav{display:block;width:100%;border:0;border-radius:8px;padding:12px;text-align:left;background:transparent;color:#fff;cursor:pointer;margin:4px 0;font:inherit}
+.nav:hover,.nav.active{background:#206044}
+.side small{position:absolute;bottom:22px;left:16px;right:16px;color:#8fb39c;font-size:11.5px;line-height:1.5}
+.main{margin-left:230px;padding:30px;max-width:1400px}
+.head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+h1{margin:0;font-size:24px}h2{margin:0 0 12px;font-size:16px}
+.pill{padding:7px 12px;border-radius:20px;font-size:13px;background:var(--okbg);color:var(--ok)}
+.pill.bad{background:var(--badbg);color:var(--bad)}
+.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin:20px 0}
+.card,.panel{background:var(--panel);border-radius:12px;padding:18px;box-shadow:0 2px 12px #123c2c14;min-width:0}
+.card{color:var(--muted)}.num{font-size:28px;font-weight:700;color:var(--brand2);margin-top:6px}
+.num.bad{color:var(--bad)}.num.warn{color:var(--warn)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+.full{grid-column:1/-1}
+.muted{color:var(--muted)}.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}
+table{width:100%;border-collapse:collapse}
+td,th{padding:8px 6px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted)}
+.scroll{overflow-x:auto}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11.5px;font-weight:600;background:#edf1ee;color:#41584a;white-space:nowrap}
+.badge.ok{background:var(--okbg);color:var(--ok)}.badge.warn{background:var(--warnbg);color:var(--warn)}.badge.bad{background:var(--badbg);color:var(--bad)}.badge.crit{background:var(--crit);color:#fff}
+.btn{border:0;border-radius:7px;background:var(--brand2);color:#fff;padding:9px 14px;font:inherit;font-weight:600;cursor:pointer;white-space:nowrap}
+.btn.small{padding:5px 10px;font-size:12.5px}
+.btn.ghost{background:#edf1ee;color:var(--ink)}
+.btn.danger{background:var(--bad)}
+.btn:disabled{opacity:.55;cursor:default}
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label{font-size:12px;font-weight:600;display:block;margin-bottom:5px;color:#516358}
+input,select{width:100%;padding:9px 10px;border:1px solid #d0ddd4;border-radius:7px;font:inherit;background:#fff;color:inherit}
+select:disabled{background:#f1f4f2;color:var(--muted)}
+.notice{position:fixed;top:16px;right:16px;z-index:20;max-width:420px;padding:11px 14px;border-radius:8px;background:var(--okbg);color:var(--ok);box-shadow:0 6px 20px #0002}
+.notice.error{background:var(--badbg);color:var(--bad)}
+.site{border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px}
+.site-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.gates{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.empty{color:var(--muted);padding:6px 0}
+code{background:#edf1ee;padding:1px 5px;border-radius:4px;font-size:12.5px}
+/* simulation */
+.sim{position:relative;height:290px;overflow:hidden;border-radius:12px;background:linear-gradient(#aee1ff 0 45%,#89bc52 45%);border:6px solid #d0b17a}
+.barn{position:absolute;right:5%;top:26px;width:170px;height:120px;background:#bd5538;color:#fff;font-weight:700;text-align:center;padding-top:46px;clip-path:polygon(50% 0,100% 30%,100% 100%,0 100%,0 30%)}
+.pasture{position:absolute;left:4%;top:70px;color:#2f5d1a;font-weight:700;letter-spacing:.08em;opacity:.75}
+.gate{position:absolute;right:32%;bottom:0;width:90px;height:150px;border:11px solid #603b24;border-bottom:0;background:#482b1c40;z-index:2;transition:box-shadow .2s}
+.gate span{position:absolute;top:-26px;left:-12px;width:100px;text-align:center;color:#fff;font-weight:700;font-size:10px;text-shadow:0 1px 2px #0008}
+.gate.flash{box-shadow:0 0 0 6px #ffe36a,0 0 30px #ffe36a}
+.path{position:absolute;bottom:0;left:0;right:0;height:74px;background:#c7a86e55;border-top:3px dashed #fff8}
+.cow{position:absolute;bottom:28px;width:64px;text-align:center;font-size:52px;line-height:1;z-index:3;filter:drop-shadow(2px 5px 2px #3353);transition:left 4s linear}
+.cow i{display:inline-block;font-style:normal}
+.cow.right i{transform:scaleX(-1)}
+.cow b{display:block;font-size:11px;background:#fff;border-radius:8px;padding:1px 4px;margin-top:2px;color:#263b2b;white-space:nowrap}
+.controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) auto;gap:10px;align-items:end;margin-bottom:14px}
+.log{max-height:240px;overflow:auto}
+.log p{border-bottom:1px solid var(--line);padding:7px 0;margin:0}
+/* pipeline trace */
+.nodes{display:grid;grid-template-columns:1fr 26px 1fr 26px 1fr;align-items:center;margin-bottom:12px}
+.node{border:2px solid var(--line);border-radius:10px;padding:10px 6px;text-align:center;background:#f7faf7;font-size:12.5px}
+.node b{display:block;font-size:13px}
+.node.active{border-color:#187146;background:#dff6e7}.node.done{border-color:#8fc4a1;background:#edf8f0}.node.held{border-color:#d9a520;background:var(--warnbg)}
+.arrow{text-align:center;color:#5c7566;font-size:20px}
+.steps{display:flex;gap:6px;flex-wrap:wrap}
+.step{flex:1;min-width:96px;border-bottom:4px solid var(--line);padding:6px 2px;color:var(--muted);text-align:center;font-size:12px}
+.step.active{border-color:#187146;color:#175d39;font-weight:700}.step.done{border-color:#85b996;color:#31724a}.step.held{border-color:#d9a520;color:var(--warn);font-weight:700}.step.failed{border-color:var(--bad);color:var(--bad);font-weight:700}
+.detail{min-height:22px;margin-top:12px;text-align:center}
+@media(max-width:1150px){.cards{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:860px){.side{position:static;width:auto;padding:16px}.side p{margin-bottom:10px}.side small{display:none}.navs{display:flex;flex-wrap:wrap;gap:4px}.nav{width:auto;margin:0}.main{margin:0;padding:16px}.grid{grid-template-columns:1fr}.controls{grid-template-columns:1fr 1fr}.nodes{grid-template-columns:1fr;gap:4px}.arrow{transform:rotate(90deg)}}
+@media(max-width:520px){.cards,.formgrid,.controls{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<aside class="side">
+  <div class="brand">Vina<i>Beef</i></div>
+  <p>RFID gate subsystem</p>
+  <div class="navs">
+    <button class="nav active" data-view="dash">▦ Gate operations</button>
+    <button class="nav" data-view="simulate">🐄 Live gate simulation</button>
+    <button class="nav" data-view="scan">⇄ Manual RFID read</button>
+  </div>
+  <small>Edge: Gate Reader Node · local whitelist · store-and-forward queue<br>Central: broker · movement &amp; counting · anomaly engine</small>
+</aside>
+
+<main class="main">
+<div id="notice" class="notice" role="status" hidden></div>
+
+<section id="dash" class="view">
+  <div class="head">
+    <div><h1>Gate operations</h1><span class="muted">Dak Lak · live RFID movement, counting and alerting</span></div>
+    <span id="netPill" class="pill">● All barn sites online</span>
+  </div>
+  <div class="cards">
+    <div class="card">Active cattle<div class="num" id="kCattle">—</div></div>
+    <div class="card">RFID gates<div class="num" id="kGates">—</div></div>
+    <div class="card">Movements recorded<div class="num" id="kMoves">—</div></div>
+    <div class="card">Open alerts<div class="num" id="kAlerts">—</div></div>
+    <div class="card">Reads held at edge<div class="num" id="kHeld">—</div></div>
+  </div>
+  <div class="grid">
+    <div class="panel">
+      <h2>Barn sites (edge)</h2>
+      <p class="muted wlInfo">…</p>
+      <div class="sites"></div>
+    </div>
+    <div class="panel">
+      <h2>Herd sessions</h2>
+      <p class="muted">An OUT read opens the barn's session. End it when the herd is back; any animal still out is reported missing.</p>
+      <div id="sessions"></div>
+    </div>
+    <div class="panel full">
+      <h2>Alerts</h2>
+      <div class="scroll"><table><thead><tr><th>Severity</th><th>Alert</th><th>Raised</th><th></th></tr></thead><tbody id="alerts"></tbody></table></div>
+    </div>
+    <div class="panel full">
+      <h2>Recent movements</h2>
+      <div class="scroll"><table><thead><tr><th>Read at</th><th>Animal</th><th>Tag</th><th>Gate</th><th>Dir</th><th>Gate check</th><th>Delivery</th></tr></thead><tbody id="movements"></tbody></table></div>
+    </div>
+  </div>
+</section>
+
+<section id="simulate" class="view" hidden>
+  <div class="head">
+    <div><h1>Live gate simulation</h1><span class="muted">Send cattle through an RFID gate and follow the read through the pipeline</span></div>
+    <span class="pill" id="simCount">0 reads</span>
+  </div>
+  <div class="panel" style="margin-top:16px">
+    <div class="controls">
+      <div><label for="simTag">Animal</label><select id="simTag"></select></div>
+      <div><label for="simGate">Gate</label><select id="simGate"></select></div>
+      <div><label for="simDir">Direction</label><select id="simDir"><option value="OUT">OUT · barn → pasture</option><option value="IN">IN · pasture → barn</option></select></div>
+      <button class="btn" id="spawn">Send through gate</button>
+    </div>
+    <div class="sim" id="sim"><div class="pasture">PASTURE</div><div class="barn">BARN</div><div class="gate" id="simGateEl"><span>RFID GATE</span></div><div class="path"></div></div>
+  </div>
+  <div class="grid">
+    <div class="panel" id="simTrace"></div>
+    <div class="panel">
+      <h2>Barn sites (edge)</h2>
+      <p class="muted">Cut a site's WAN link, send cattle through, then restore it. Held reads are forwarded in order and recorded exactly once.</p>
+      <div class="sites"></div>
+    </div>
+    <div class="panel full"><h2>Gate read log</h2><div id="simLog" class="log"><p class="muted">Ready.</p></div></div>
+  </div>
+</section>
+
+<section id="scan" class="view" hidden>
+  <div class="head">
+    <div><h1>Manual RFID read</h1><span class="muted">Sends exactly what the RFID hardware sends: <code>POST /api/scan</code></span></div>
+  </div>
+  <div class="grid">
+    <div class="panel">
+      <h2>Reader event</h2>
+      <form id="scanForm" class="formgrid">
+        <div class="full"><label for="scanTag">RFID tag (ISO 11784/11785, 15 digits)</label><input id="scanTag" name="rfidTag" placeholder="704000000000001" required></div>
+        <div><label for="scanGate">Gate</label><select id="scanGate" name="gateId"></select></div>
+        <div><label for="scanDir">Antenna direction</label><select id="scanDir" name="direction"><option>OUT</option><option>IN</option></select></div>
+        <div class="full"><button class="btn">Send read</button></div>
+      </form>
+      <p class="muted">Direction is only used by bidirectional gates; entry and exit gates fix it from their configuration.</p>
+    </div>
+    <div class="panel" id="scanTrace"></div>
+  </div>
+</section>
+</main>
+
+<script>
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+const clock = iso => iso ? new Date(iso).toLocaleTimeString() : '—';
+const words = s => String(s ?? '').replaceAll('_', ' ');
+const badge = (text, kind = '') => `<span class="badge ${kind}">${esc(text)}</span>`;
+const duration = ms => ms < 60000 ? Math.round(ms / 1000) + ' s' : Math.round(ms / 60000) + ' min';
+
+const CLASS_KIND = {KNOWN: 'ok', UNREGISTERED: 'bad', INACTIVE: 'warn', WRONG_BARN: 'warn'};
+const SEVERITY_KIND = {LOW: '', MEDIUM: 'warn', HIGH: 'bad', CRITICAL: 'crit'};
+let gates = [];
+let simReads = 0;
+
+/* ---------- HTTP ---------- */
+async function api(path, options = {}) {
+  const res = await fetch('/api/' + path, {headers: {'Content-Type': 'application/json'}, ...options});
+  const body = await res.json().catch(() => null);
+  if (!res.ok) throw new Error(body?.message || `Request failed (${res.status})`);
+  return body;
+}
+const post = (path, data) => api(path, {method: 'POST', body: JSON.stringify(data ?? {})});
+const put = (path, data) => api(path, {method: 'PUT', body: JSON.stringify(data)});
+
+function notify(text, error = false) {
+  const n = $('#notice');
+  n.textContent = text;
+  n.className = 'notice' + (error ? ' error' : '');
+  n.hidden = false;
+  clearTimeout(notify.timer);
+  notify.timer = setTimeout(() => { n.hidden = true; }, 4500);
+}
+
+/* ---------- Gates and cattle (seeded master data) ---------- */
+function syncDirection(gateSelector, directionSelector) {
+  const type = $(gateSelector).selectedOptions[0]?.dataset.type;
+  const direction = $(directionSelector);
+  direction.disabled = type === 'ENTRY' || type === 'EXIT';
+  if (type === 'ENTRY') direction.value = 'IN';
+  if (type === 'EXIT') direction.value = 'OUT';
+}
+
+async function loadMasterData() {
+  const cattle = await api('cattle');
+  gates = await api('gates');
+  $('#kCattle').textContent = cattle.filter(c => c.active).length;
+  $('#kGates').textContent = gates.length;
+
+  const gateOptions = gates.map(g => `<option value="${g.id}" data-type="${g.type}">${esc(g.code)} · ${esc(g.name)} (${g.type})</option>`).join('');
+  $('#simGate').innerHTML = gateOptions;
+  $('#scanGate').innerHTML = gateOptions;
+  $('#simTag').innerHTML = cattle.map(c =>
+      `<option value="${esc(c.rfidTag)}" data-label="${esc(c.animalCode)}">${esc(c.animalCode)} · belongs to ${esc(c.expectedBarnCode)}${c.active ? '' : ' · ' + esc(c.status)}</option>`).join('')
+      + '<option value="__stray" data-label="Stray">Unregistered tag (stray animal)</option>';
+  syncDirection('#simGate', '#simDir');
+  syncDirection('#scanGate', '#scanDir');
+}
+
+/* ---------- Live dashboard ---------- */
+async function refresh() {
+  try {
+    const [movements, count, openAlerts, alerts, sessions, edge] = await Promise.all([
+      api('movements?limit=15'), api('movements/count'), api('alerts/open-count'), api('alerts?limit=20'),
+      api('herd-sessions'), api('edge/status')]);
+    renderKpis(count.total, openAlerts.open, edge.pendingEvents);
+    renderSites(edge);
+    renderSessions(sessions);
+    renderAlerts(alerts);
+    renderMovements(movements);
+  } catch (err) {
+    console.warn('Refresh failed', err);
+  }
+}
+
+function renderKpis(movements, openAlerts, held) {
+  $('#kMoves').textContent = movements;
+  $('#kAlerts').textContent = openAlerts;
+  $('#kAlerts').className = 'num' + (openAlerts ? ' bad' : '');
+  $('#kHeld').textContent = held;
+  $('#kHeld').className = 'num' + (held ? ' warn' : '');
+}
+
+function renderSites(edge) {
+  $$('.wlInfo').forEach(el => { el.textContent = `Whitelist v${edge.whitelistVersion} · ${edge.whitelistSize} tags cached on every Gate Reader Node`; });
+  const html = edge.sites.map(site => {
+    const siteGates = gates.filter(g => g.barnId === site.barnId).map(g => badge(`${g.code} · ${g.type}`)).join('');
+    const link = site.online ? badge('WAN online', 'ok') : badge('WAN offline', 'bad');
+    const held = site.pendingEvents ? ' ' + badge(`${site.pendingEvents} held at edge`, 'warn') : '';
+    const button = site.online
+        ? `<button class="btn small danger" data-link="${site.barnId}" data-online="false">Cut WAN link</button>`
+        : `<button class="btn small" data-link="${site.barnId}" data-online="true">Restore WAN link</button>`;
+    return `<div class="site"><div class="site-head"><div><b>${esc(site.barnCode)}</b> ${link}${held}</div>${button}</div><div class="gates">${siteGates}</div></div>`;
+  }).join('') || '<p class="empty">No gates configured.</p>';
+  $$('.sites').forEach(el => { el.innerHTML = html; });
+
+  const offline = edge.sites.filter(s => !s.online).map(s => s.barnCode);
+  $('#netPill').className = 'pill' + (offline.length ? ' bad' : '');
+  $('#netPill').textContent = offline.length ? `● WAN down at ${offline.join(', ')}; gates still recording` : '● All barn sites online';
+}
+
+function renderSessions(sessions) {
+  $('#sessions').innerHTML = sessions.length ? `<div class="scroll"><table>
+      <thead><tr><th>Barn</th><th>Left</th><th>Returned</th><th>Still out</th><th></th></tr></thead>
+      <tbody>${sessions.map(s => `<tr>
+        <td><b>${esc(s.barnCode)}</b><br><span class="muted">since ${clock(s.openedAt)}</span></td>
+        <td>${s.outCount}</td><td>${s.returnedCount}</td>
+        <td>${s.stillOut ? `<b class="warn">${s.stillOut}</b>` : '0'}</td>
+        <td><button class="btn small" data-close="${s.barnId}">End session</button></td></tr>`).join('')}</tbody></table></div>`
+      : '<p class="empty">No open session. Send cattle OUT through a gate to start one.</p>';
+}
+
+function renderAlerts(alerts) {
+  $('#alerts').innerHTML = alerts.map(a => `<tr>
+      <td>${badge(a.severity, SEVERITY_KIND[a.severity])}</td>
+      <td><b>${esc(words(a.type))}</b><br>${esc(a.message)}</td>
+      <td>${clock(a.raisedAt)}</td>
+      <td>${a.status === 'OPEN' ? `<button class="btn small ghost" data-ack="${a.id}">Acknowledge</button>` : badge(a.status)}</td></tr>`).join('')
+      || '<tr><td colspan="4" class="empty">No alerts.</td></tr>';
+}
+
+function renderMovements(movements) {
+  $('#movements').innerHTML = movements.map(m => `<tr>
+      <td>${clock(m.occurredAt)}</td><td>${esc(m.animalCode || '—')}</td><td><code>${esc(m.rfidTag)}</code></td>
+      <td>${esc(m.gateCode)}</td><td>${m.direction}</td>
+      <td>${badge(words(m.classification), CLASS_KIND[m.classification])}</td>
+      <td>${m.deliveryDelayMillis > 5000 ? badge(`held ${duration(m.deliveryDelayMillis)} at edge`, 'warn') : '<span class="muted">live</span>'}</td></tr>`).join('')
+      || '<tr><td colspan="7" class="empty">No movements yet. Try the live gate simulation.</td></tr>';
+}
+
+/* ---------- Pipeline trace ---------- */
+const STEPS = ['RFID read', 'Local whitelist check', 'Stored in edge queue', 'Forwarded via broker', 'Movement & anomaly check'];
+const STEP_NODE = [0, 0, 1, 1, 2];
+const NODES = [['Gate Reader Node', 'edge · at the barn'], ['Edge queue → broker', 'store-and-forward'], ['Central services', 'movement · anomaly']];
+
+function makeTrace(el) {
+  let index = -1, mode = 'active';
+  const stepClass = i => i < index ? 'done' : i === index ? mode : '';
+  const nodeClass = n => {
+    const steps = STEP_NODE.flatMap((node, i) => node === n ? [i] : []);
+    if (steps.includes(index)) return mode === 'failed' ? 'held' : mode;
+    return steps.every(i => i < index) ? 'done' : '';
+  };
+  const render = (detail = 'Waiting for a read…', kind = 'muted') => {
+    el.innerHTML = `<h2>Pipeline trace</h2>
+      <div class="nodes">${NODES.map((n, i) => `<div class="node ${nodeClass(i)}"><b>${n[0]}</b><span class="muted">${n[1]}</span></div>`).join('<div class="arrow">→</div>')}</div>
+      <div class="steps">${STEPS.map((s, i) => `<div class="step ${stepClass(i)}">${s}</div>`).join('')}</div>
+      <div class="detail ${kind}" aria-live="polite">${esc(detail)}</div>`;
+  };
+  render();
+  return {
+    step(i, detail) { index = i; mode = 'active'; render(detail, ''); },
+    hold(i, detail) { index = i; mode = 'held'; render(detail, 'warn'); },
+    fail(detail) { mode = 'failed'; index = Math.max(index, 0); render(detail, 'bad'); },
+    finish(detail, kind) { index = STEPS.length; mode = 'active'; render(detail, kind); },
+    reset() { index = -1; mode = 'active'; render(); }
+  };
+}
+
+async function waitForMovement(eventId) {
+  for (let i = 0; i < 15; i++) {
+    const res = await fetch('/api/movements/' + encodeURIComponent(eventId));
+    if (res.ok) return res.json();
+    await sleep(300);
+  }
+  return null;
+}
+
+async function runScan(trace, body) {
+  trace.step(0, `Reader sent tag ${body.rfidTag}`);
+  let read;
+  try {
+    read = await post('scan', body);
+  } catch (err) {
+    trace.fail('Rejected at the gate: ' + err.message);
+    throw err;
+  }
+  trace.step(1, `${words(read.classification)}: decided at the gate in ${read.processingMillis.toFixed(1)} ms using whitelist v${read.whitelistVersion}`);
+  await sleep(500);
+  trace.step(2, 'Stored durably in the local queue before answering the reader');
+  await sleep(500);
+  if (read.delivery === 'HELD_OFFLINE') {
+    trace.hold(3, `WAN link of ${read.gate.barnCode} is down. The read waits at the edge and is forwarded when the link returns.`);
+    return read;
+  }
+  trace.step(3, 'Relay is forwarding the event to the broker…');
+  const movement = await waitForMovement(read.eventId);
+  if (!movement) {
+    trace.hold(3, 'Not forwarded yet. It stays queued and the relay retries.');
+    return read;
+  }
+  trace.step(4, 'Movement recorded; anomaly rules are checking it against the registry…');
+  await sleep(400);
+  const alerts = (await api('alerts?limit=50')).filter(a => a.sourceRef === read.eventId);
+  trace.finish(alerts.length
+      ? `Recorded ${movement.direction} at ${movement.gateCode}. Alert raised: ${alerts.map(a => words(a.type)).join(', ')}.`
+      : `Recorded ${movement.direction} at ${movement.gateCode}. No anomaly.`, alerts.length ? 'bad' : 'ok');
+  return read;
+}
+
+/* ---------- Simulation ---------- */
+const simTrace = makeTrace($('#simTrace'));
+const scanTrace = makeTrace($('#scanTrace'));
+
+function logRead(read, label) {
+  const log = $('#simLog');
+  if (!simReads) log.innerHTML = '';
+  const kind = read.classification === 'KNOWN' ? 'ok' : 'bad';
+  const where = read.delivery === 'HELD_OFFLINE' ? '<b class="warn">held at edge (WAN offline)</b>' : 'forwarded to central';
+  log.insertAdjacentHTML('afterbegin', `<p><span class="${kind}">${clock(read.occurredAt)} · ${esc(label)} <code>${esc(read.rfidTag)}</code>
+      ${read.direction} at ${esc(read.gate.gateCode)} · ${esc(words(read.classification))}</span>
+      · ${read.processingMillis.toFixed(1)} ms at the gate · ${where}</p>`);
+}
+
+$('#spawn').onclick = async () => {
+  const gate = gates.find(g => g.id === Number($('#simGate').value));
+  if (!gate) { notify('No gate configured.', true); return; }
+  const option = $('#simTag').selectedOptions[0];
+  const tag = option.value === '__stray' ? '704999' + String(Math.floor(Math.random() * 1e9)).padStart(9, '0') : option.value;
+  const label = option.dataset.label;
+  const direction = $('#simDir').value;
+  const out = direction === 'OUT';
+
+  const sim = $('#sim'), gateEl = $('#simGateEl');
+  const width = sim.clientWidth, start = out ? width - 150 : -70, end = out ? -80 : width - 150;
+  const gateCenter = gateEl.offsetLeft + gateEl.offsetWidth / 2 - 32;
+  const cow = document.createElement('div');
+  cow.className = 'cow' + (out ? '' : ' right');
+  cow.innerHTML = `<i>🐄</i><b>${esc(label)}</b>`;
+  cow.style.left = start + 'px';
+  sim.appendChild(cow);
+  $('#spawn').disabled = true;
+  simTrace.reset();
+  cow.getBoundingClientRect();
+  cow.style.left = end + 'px';
+
+  await sleep(Math.abs(gateCenter - start) / Math.abs(end - start) * 4000);
+  gateEl.classList.add('flash');
+  setTimeout(() => gateEl.classList.remove('flash'), 450);
+  try {
+    const read = await runScan(simTrace, {rfidTag: tag, gateId: gate.id, direction: gate.type === 'BIDIR' ? direction : null});
+    logRead(read, label);
+    simReads++;
+    $('#simCount').textContent = `${simReads} read${simReads === 1 ? '' : 's'}`;
+  } catch (err) {
+    notify(err.message, true);
+  } finally {
+    setTimeout(() => cow.remove(), 3000);
+    $('#spawn').disabled = false;
+    refresh();
+  }
+};
+
+/* ---------- Manual read & actions ---------- */
+$('#scanForm').onsubmit = async e => {
+  e.preventDefault();
+  const form = Object.fromEntries(new FormData(e.target));
+  const gate = gates.find(g => g.id === Number(form.gateId));
+  try {
+    await runScan(scanTrace, {rfidTag: form.rfidTag, gateId: Number(form.gateId), direction: gate?.type === 'BIDIR' ? form.direction : null});
+    refresh();
+  } catch (err) {
+    notify(err.message, true);
+  }
+};
+
+document.addEventListener('click', async e => {
+  const button = e.target.closest('button[data-link], button[data-close], button[data-ack]');
+  if (!button) return;
+  button.disabled = true;
+  try {
+    if (button.dataset.link) {
+      const online = button.dataset.online === 'true';
+      await put(`edge/sites/${button.dataset.link}/link`, {online});
+      notify(online ? 'WAN link restored. Held reads are being forwarded in order.' : 'WAN link cut. The gates keep reading and hold events locally.');
+    } else if (button.dataset.close) {
+      const session = await post(`barns/${button.dataset.close}/herd-session/close`);
+      const missing = session.outstandingTags.length;
+      notify(missing ? `${missing} animal(s) did not return to ${session.barnCode}. Missing-cattle alert raised.` : `Session closed: every animal returned to ${session.barnCode}.`, missing > 0);
+    } else if (button.dataset.ack) {
+      await post(`alerts/${button.dataset.ack}/acknowledge`);
+    }
+  } catch (err) {
+    notify(err.message, true);
+  } finally {
+    await refresh();
+  }
+});
+
+document.addEventListener('change', e => {
+  if (e.target.id === 'simGate') syncDirection('#simGate', '#simDir');
+  if (e.target.id === 'scanGate') syncDirection('#scanGate', '#scanDir');
+});
+
+$$('.nav').forEach(nav => nav.onclick = () => {
+  $$('.nav').forEach(n => n.classList.toggle('active', n === nav));
+  $$('.view').forEach(v => { v.hidden = v.id !== nav.dataset.view; });
+});
+
+loadMasterData().then(refresh).catch(err => notify('Could not load data: ' + err.message, true));
+setInterval(refresh, 2000);
+</script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+{
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "spdxVersion": "SPDX-2.3",
+  "name": "SBOM-SPDX-maven-3.10.0",
+  "creationInfo": {
+    "created": "2026-09-27T20:37:52Z",
+    "creators": [
+      "Tool: https://github.com/Homebrew/brew"
+    ]
+  },
+  "dataLicense": "CC0-1.0",
+  "documentNamespace": "https://formulae.brew.sh/spdx/maven-3.10.0.json",
+  "documentDescribes": [
+    "SPDXRef-Archive-maven-src"
+  ],
+  "files": [
+    {
+      "SPDXID": "SPDXRef-File-maven",
+      "fileName": "apache-maven-3.10.0-bin.tar.gz",
+      "checksums": [
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "a46cc51bc74fa23fd267c7a0b9132b146dcf526da60d31aa5174e565632e9e0e"
+        }
+      ]
+    }
+  ],
+  "packages": [
+    {
+      "SPDXID": "SPDXRef-Archive-maven-src",
+      "name": "maven",
+      "versionInfo": "3.10.0",
+      "filesAnalyzed": false,
+      "licenseDeclared": "NOASSERTION",
+      "builtDate": "2026-09-27T20:37:52Z",
+      "licenseConcluded": "Apache-2.0",
+      "downloadLocation": "https://www.apache.org/dyn/closer.lua?path=maven/maven-3/3.10.0/binaries/apache-maven-3.10.0-bin.tar.gz",
+      "copyrightText": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:brew/homebrew/core/maven@3.10.0",
+          "referenceType": "purl"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "a46cc51bc74fa23fd267c7a0b9132b146dcf526da60d31aa5174e565632e9e0e"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "spdxElementId": "SPDXRef-File-maven",
+      "relationshipType": "PACKAGE_OF",
+      "relatedSpdxElement": "SPDXRef-Archive-maven-src"
+    }
+  ]
+}

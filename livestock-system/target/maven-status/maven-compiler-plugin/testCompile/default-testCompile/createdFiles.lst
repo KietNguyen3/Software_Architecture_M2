@@ -1,0 +1,5 @@
+com/vinabeef/edge/GateReaderServiceTest$InMemoryQueue.class
+com/vinabeef/movement/domain/HerdSessionTest.class
+com/vinabeef/anomaly/rule/MovementRulesTest.class
+com/vinabeef/GatePipelineIntegrationTest.class
+com/vinabeef/edge/GateReaderServiceTest.class
